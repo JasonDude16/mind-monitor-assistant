@@ -34,7 +34,7 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$auth, {
     drop_auth()
-    showNotification("Authentication complete. Use the 'Refresh App' button to reload.")
+    showNotification("Authentication complete. Use the 'Refresh App' button to reload.", duration = NULL)
   })
   
   output$ui_authenticated_text <- renderUI({
@@ -66,7 +66,7 @@ shinyServer(function(input, output, session) {
     # verify dropbox folder is valid 
     fold <- tryCatch(
       drop_dir(input$dbfolder), 
-      error = function(e) {showNotification("Error encountered. Make sure dropbox path is specified correctly.")}
+      error = function(e) {showNotification("Error encountered. Make sure dropbox path is specified correctly. If issue persists, try re-authenticating")}
     )
     
     # if path was valid and data frame was returned
@@ -91,16 +91,17 @@ shinyServer(function(input, output, session) {
         files <- files[which(basename(files) %in% list.files(input$localfolder) == FALSE)]
       }
       
-      withProgress(
+      withProgress(message = "Downloading files...", {
         purrr::walk(
           files,
           drop_download,
-          local_path = input$localfolder,
-          overwrite = input$overwrite_db,
-          progress = FALSE,
-          verbose = FALSE
-        ) 
-      )
+          input$localfolder,
+          input$overwrite_db, 
+          verbose = FALSE, 
+          progress = FALSE
+        )
+        incProgress(1 / length(files))
+      })
       
       showNotification("Download(s) complete!")
       
@@ -108,8 +109,8 @@ shinyServer(function(input, output, session) {
 
   }, once = TRUE)
   
-  ########## UPLOAD SECTION ##########
-  data <- reactive({
+  ########## LOAD DATA SECTION ##########
+  raw <- reactive({
     
     df <- suppressMessages(
       read.csv(
@@ -118,25 +119,33 @@ shinyServer(function(input, output, session) {
       )
     )
     
-    df <- downsample(df, as.numeric(input$downsample))
-    
-    if (input$convert) {
-      df <- rawmuse_to_mv(df, col_names = colnames(select(df, contains(input$raw_id))))
-    }
+    events <- get_events(df, elements_col = "Elements", srate = input$srate)
+    df <- df[-events[["eventloc"]], ]
     
     # get number of rows in file, assuming file has header (n - 1)
     cmd <- paste("cat", input$file$datapath, "| wc -l")
     n <- as.numeric(system(cmd, intern = TRUE)) - 1
     
-    return(list("df" = df, "n" = n))
+    return(list("df" = df, "events" = events, "n" = n))
     
+  })
+  
+  df <- reactive({
+    
+    df <- downsample(raw()$df, as.numeric(input$downsample))
+    
+    if (input$convert) {
+      df <- rawmuse_to_mv(df, col_names = colnames(select(df, contains(input$raw_id))))
+    }
+    
+    return(df)
   })
   
   output$df <- renderPrint({
     req(input$file)
     
-    dur_min <- floor((data()$n / input$srate) / 60)
-    dur_sec <- round((data()$n / input$srate) - (dur_min * 60), 0)
+    dur_min <- floor((raw()$n / input$srate) / 60)
+    dur_sec <- round((raw()$n / input$srate) - (dur_min * 60), 0)
     
     fs <- input$file$size / 1e6
     size_in_mem <- lobstr::obj_size(data())
@@ -158,10 +167,10 @@ shinyServer(function(input, output, session) {
     cat(
       " File size:          ", fs, "\n",
       "Size in memory:     ", size_in_mem, "\n",
-      "First timestamp:    ", format.Date(data()$df$TimeStamp[1], method = 'toISOString'), "\n",
-      "Number of rows:     ", data()$n, "\n",
+      "First timestamp:    ", format.Date(df()$TimeStamp[1], method = 'toISOString'), "\n",
+      "Number of rows:     ", raw()$n, "\n",
       "Recording duration: ", paste(dur_min, "min", dur_sec, "sec"), "\n",
-      "Number of columns:  ", length(colnames(data()$df)), "\n"
+      "Number of columns:  ", length(colnames(df())), "\n"
     )
   })
   
@@ -216,6 +225,7 @@ shinyServer(function(input, output, session) {
           data.frame(
             path = input$localfolder,
             file = input$file$name,
+            srate = input$srate,
             id = input$id,
             sex = input$sex,
             subj_name = input$subj_name,
@@ -249,17 +259,17 @@ shinyServer(function(input, output, session) {
   observeEvent(input$file, {
     updateSelectInput(
       inputId = "chans", 
-      choices = colnames(data()$df), 
-      selected = colnames(select(data()$df, contains(input$raw_id))), 
+      choices = colnames(df()), 
+      selected = colnames(select(df(), contains(input$raw_id))), 
     )
   })
   
   observeEvent(input$file, {
-    win_max <- nrow(data()$df) / (input$srate / as.numeric(input$downsample))
+    win_max <- round(nrow(df()) / (input$srate / as.numeric(input$downsample)), 0)
     updateSliderInput(
       inputId = "window", 
       max = win_max,
-      value = round(win_max / 4, 0)
+      value = c(0, round(win_max / 4, 0))
     )
   })
   
@@ -270,7 +280,7 @@ shinyServer(function(input, output, session) {
     if (!is.null(input$chans)) {
       if (input$plot == "Raw") {
         plot_raw(
-          df = data()$df, 
+          df = df(), 
           srate = input$srate / as.numeric(input$downsample), 
           window = input$window, 
           chans = input$chans,
@@ -280,14 +290,17 @@ shinyServer(function(input, output, session) {
           hline = input$hlines,
           scale_fctr = input$scale_fctr,
           str_rm = input$str_rm,
-          plot_title = input$plot_title
+          plot_title = input$plot_title,
+          common_scale = input$common_scale,
+          plot_events = input$plot_events,
+          events = raw()$events
         )
         
       }
       if (input$plot == "PSD") {
         
         psd <- compute_psd(
-          df = data()$df, 
+          df = df(), 
           srate = input$srate / as.numeric(input$downsample), 
           window = input$window, 
           chans = input$chans,
@@ -329,7 +342,7 @@ shinyServer(function(input, output, session) {
     
     png(path)
     plot_raw(
-      df = data()$df, 
+      df = df(), 
       srate = input$srate / as.numeric(input$downsample), 
       window = input$window, 
       chans = input$chans,
@@ -339,7 +352,10 @@ shinyServer(function(input, output, session) {
       hline = input$hlines,
       scale_fctr = input$scale_fctr,
       str_rm = input$str_rm,
-      plot_title = input$plot_title
+      plot_title = input$plot_title,
+      common_scale = input$common_scale,
+      plot_events = input$plot_events,
+      events = raw()$events
     )
     dev.off()
     

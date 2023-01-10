@@ -1,6 +1,7 @@
 # scale 
-plot_raw <- function(df, srate, window, chans, cols = NULL, str_rm = "RAW_", plot_title = NULL,
-                     overlay = FALSE, scale_fctr = 0.5, range_labs = TRUE, hline = TRUE, scale_by_window = FALSE) {
+plot_raw <- function(df, srate, window, chans, cols = NULL, str_rm = "RAW_", plot_title = NULL, overlay = FALSE, 
+                     scale_fctr = 0.5, range_labs = TRUE, hline = TRUE, scale_by_window = TRUE, common_scale = TRUE, 
+                     plot_events = FALSE, events = NULL) {
   
   # tibble for consistency
   df <- tibble::as_tibble(df)
@@ -28,18 +29,29 @@ plot_raw <- function(df, srate, window, chans, cols = NULL, str_rm = "RAW_", plo
     ticks <- 1:(length(chans) + 1) * 2
     offset <- ticks[-1] - 1
     
-    # getting ranges so we can add to plot
-    maxs <- round(apply(df, 2, function(x) max(abs(range(x, na.rm = TRUE)))), 0)
-    mins <- -maxs
-
     # adjust by scaling factor
     ymins <- offset - scale_fctr
     ymaxs <- offset + scale_fctr
     
-    # make all values within -1:1 * scale_fctr and apply offset
-    df <- purrr::map2_dfr(df, offset, function(.x, .y) {
-      (.x / max(abs(range(.x, na.rm = TRUE)))) * scale_fctr + .y
-    })
+    # getting ranges for each channel
+    if (!common_scale) {
+      maxs <- round(apply(df, 2, function(x) max(abs(range(x, na.rm = TRUE)))), 0)
+      mins <- -maxs
+      
+      # make all values within -1:1 * scale_fctr and apply offset
+      df <- purrr::map2_dfr(df, offset, function(.x, .y) {
+        (.x / max(abs(range(.x, na.rm = TRUE)))) * scale_fctr + .y
+      })
+      
+    } else {
+      max <- round(max(abs(range(df, na.rm = TRUE))), 0)
+      maxs <- rep(max, length(chans))
+      mins <- -maxs
+      
+      df <- (df / max(abs(range(df, na.rm = TRUE)))) * scale_fctr
+      df <- map2_dfr(df, offset, ~ .x + .y)
+      
+    }
     
     # change default plotting params
     ylim <- c(min(ticks), max(ticks))
@@ -76,6 +88,15 @@ plot_raw <- function(df, srate, window, chans, cols = NULL, str_rm = "RAW_", plo
     } 
   }
   
+  if (plot_events) {
+    if (!is.null(events)) {
+      if (nrow(events) > 1) {
+        abline(v = events[["eventloc_sec"]][-1])
+        text(x = events[["eventloc_sec"]][-1], y = ylim[2], events[["events_partial"]][-1]) 
+      }
+    } 
+  }
+  
   if (!overlay) {
     axis(2, at = offset, labels = stringr::str_remove(chans, str_rm), las = 1)
     
@@ -86,9 +107,7 @@ plot_raw <- function(df, srate, window, chans, cols = NULL, str_rm = "RAW_", plo
     
     if (hline) {
       labs <- c(ymins, ymaxs)
-      for (lab in 1:length(labs)) {
-        abline(h = labs[lab], lty = 2)
-      } 
+      abline(h = labs, lty = 2)
     }
     
   }

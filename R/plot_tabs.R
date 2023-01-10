@@ -4,8 +4,9 @@ plot_tabs <- tabsetPanel(
   tabPanel(
     title = "Raw",
     checkboxInput(
-      inputId = "events",
-      label = "Plot events"
+      inputId = "plot_events",
+      label = "Plot events",
+      value = TRUE
     ),
     checkboxInput(
       inputId = "overlay",
@@ -13,7 +14,13 @@ plot_tabs <- tabsetPanel(
     ),
     checkboxInput(
       inputId = "scale_by_window",
-      label = "Scale by window"
+      label = "Scale by window",
+      value = TRUE
+    ),
+    checkboxInput(
+      inputId = "common_scale",
+      label = "Common Scale",
+      value = TRUE
     ),
     checkboxInput(
       inputId = "range_labs",
