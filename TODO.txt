@@ -1,21 +1,30 @@
-Dropbox
-- progress bar
-
-Upload
-- PSD id 
-- TF id 
-
-Transform tab
+Transform
 - low pass
 - high pass
 - notch
 - plot kerns
 
 Plot 
+- PSD freq limits
 - welch
+-- use psd columns if present
 - spectrogram (morlet)
+-- use tf columns if present
 - average channels
-- add events
+- rereference to average
 
 Metadata 
 - state
+- id-name link .csv
+- file size, recording duration, column names
+
+Upload
+- example data
+- possibly change raw id to checkbox
+
+Button sizes 
+- fixed widths will not work for different screen sizes
+
+Dropbox
+- progress bar
+- delete old token
