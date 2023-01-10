@@ -1,0 +1,21 @@
+Dropbox
+- progress bar
+
+Upload
+- PSD id 
+- TF id 
+
+Transform tab
+- low pass
+- high pass
+- notch
+- plot kerns
+
+Plot 
+- welch
+- spectrogram (morlet)
+- average channels
+- add events
+
+Metadata 
+- state
