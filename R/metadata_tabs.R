@@ -48,27 +48,27 @@ metadata_tabs <- tabsetPanel(
     selectInput(
       inputId = "condition",
       label = "Condition",
-      choices = c("resting")
+      choices = c("resting-EC", "resting-EO", "meditation-EC", "meditation-EO", "sleep", "nap")
     ),
     selectInput(
       inputId = "posture",
       label = "Posture",
-      choices = c("resting")
+      choices = c("seated- back supported", "seated- back unsupported", "standing", "lying down")
     ),
     selectInput(
       inputId = "location",
       label = "Location",
-      choices = c("resting")
+      choices = c("home-room")
     ),
     selectInput(
       inputId = "rating",
       label = "Recording Rating",
-      choices = c("poor", "okay", "excellent")
+      choices = c("poor", "okay", "good")
     ),
     selectInput(
       inputId = "watered", 
       label = "Electrodes watered",
-      choices = c("Yes", "No")
+      choices = c("no", "yes")
     )
   ),
   tabPanel(

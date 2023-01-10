@@ -54,7 +54,7 @@ shinyUI(
             ),
           ),
           tabPanel(
-            title = "Upload",
+            title = "Load Data",
             br(),
             numericInput(
               inputId = "duration", 
@@ -75,7 +75,19 @@ shinyUI(
               label = "Raw identifier", 
               value = "RAW"
             ),
-            fileInput(inputId = "file", label = "Select CSV file", accept = ".csv"),
+            checkboxInput(
+              inputId = "has_psd", 
+              label = "Contains PSD data"
+            ),
+            checkboxInput(
+              inputId = "has_tf", 
+              label = "Contains TF data"
+            ),
+            fileInput(
+              inputId = "file", 
+              label = "Select CSV file", 
+              accept = ".csv"
+            ),
             verbatimTextOutput("df")
           ),
           tabPanel(
