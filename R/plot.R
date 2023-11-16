@@ -154,3 +154,57 @@ plot_psd <- function(spectrum, hz, chans = NULL, freq_min = 0.1, freq_max = max(
   )
   
 }
+
+plot_kernel <- function(kern, srate, xlim_t = NULL, xlim_f = NULL) {
+  
+  hz <- seq(0, srate / 2, length.out = floor(length(kern) / 2) + 1)
+  
+  fc <- fft(kern)
+  fc <- abs(fc[1:length(hz)])^2
+  
+  par(mfrow = c(1, 2))
+  plot(
+    0:(length(kern) - 1) / srate,
+    kern,
+    type = "l",
+    xlab = "Time (s)",
+    ylab = "",
+    xlim = xlim_t
+  )
+  plot(
+    hz,
+    fc,
+    type = "l",
+    xlab = "Frequency (Hz)",
+    ylab = "Gain",
+    xlim = xlim_f
+  )
+  par(mfrow = c(1, 1))
+}
+
+fooof_plot <- function(df_fm, title_append = "My Brain Waves") {
+  
+  plt_title <- paste0(
+    "R2: ",
+    round(df_fm$r2[1], 2),
+    ", Offset: ",
+    round(df_fm$ap_offset[1], 2),
+    ", Exponent: ",
+    round(df_fm$ap_exponent[1], 2),
+    ", ",
+    title_append
+  )
+  
+  p <- df_fm %>% 
+    ggplot() +
+    geom_line(aes(freqs, ps)) +
+    geom_line(aes(freqs, fs), col = "salmon", size = 1.1) +
+    geom_line(aes(freqs, slope), col = "cyan", lty = 2.2) +
+    ggtitle(plt_title) +
+    xlab("Frequencies") +
+    ylab("Power Spectrum") +
+    theme_classic() +
+    theme(text = element_text(size = 16)) 
+  
+  return(p)
+}

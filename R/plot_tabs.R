@@ -44,13 +44,45 @@ plot_tabs <- tabsetPanel(
       inputId = "method",
       label = "Method",
       choiceValues = c("fft", "welch"),
-      choiceNames = c("FFT", "Welch")
+      choiceNames = c("FFT", "Welch"),
+      selected = "welch"
     ),
     radioButtons(
       inputId = "scale",
       label = "Scale",
-      choiceValues = c("amp", "power", "dB"),
-      choiceNames = c("Ampltiude", "Power", "Decibels")
+      choiceValues = c("amp", "power"),
+      choiceNames = c("Ampltiude", "Power"),
+      selected = "power"
+    )
+  ),
+  tabPanel(
+    title = "FOOOF",
+    sliderInput(
+      inputId = "freq_range",
+      label = "Frequency Range", 
+      min = 1, 
+      max = 50, 
+      step = 1, 
+      value = c(2, 30)
+    ),
+    numericInput(
+      inputId = "min_peak_ht",
+      label = "Minimum Peak Height",
+      value = 0,
+      min = 0
+    ),
+    numericInput(
+      inputId = "peak_thresh",
+      label = "Peak Threshold",
+      value = 2,
+      min = 0
+    ),
+    radioButtons(
+      inputId = "space",
+      label = "Space",
+      choiceValues = c("log", "linear"),
+      choiceNames = c("Log-Log", "Linear"),
+      selected = "log"
     )
   )
 )
