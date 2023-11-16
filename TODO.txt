@@ -1,30 +1,25 @@
-Transform
-- low pass
-- high pass
-- notch
-- plot kerns
+Metadata 
+- id-name link .csv
+- meditation type 
+- marker comments
+- focus/meditation likert scale self-rating
+
+Compute 
+- use neuodsp for welch psd
 
 Plot 
-- PSD freq limits
-- welch
--- use psd columns if present
-- spectrogram (morlet)
--- use tf columns if present
-- average channels
 - rereference to average
-
-Metadata 
-- state
-- id-name link .csv
-- file size, recording duration, column names
+- average channels
+- making all plots black would be nice
 
 Upload
 - example data
-- possibly change raw id to checkbox
+- choose a certain portion of the data to upload (eg 30s from 50% into recording)
 
-Button sizes 
-- fixed widths will not work for different screen sizes
+Transform 
+- notch filter
+- use a standard function for downsampling
 
-Dropbox
-- progress bar
-- delete old token
+Misc 
+- fixed widths of button sizes will not work for different screen sizes
+- hard code srate into config file 

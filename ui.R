@@ -11,6 +11,7 @@ shinyUI(
     sidebarLayout(
       sidebarPanel(
         tabsetPanel(
+          id = "tabs",
           tabPanel(
             title = "DropBox",
             br(),
@@ -44,12 +45,21 @@ shinyUI(
               ),
               column(
                 actionButton(
+                  inputId = "delete_token", 
+                  label = "Delete Token", 
+                  icon = icon("x"),
+                  style = "margin-top: 10px; margin-left: 30px; font-size: 16px"
+                ),
+                width = 3
+              ),
+              column(
+                actionButton(
                   inputId = "reload", 
                   label = "Refresh App", 
                   icon = icon("rotate-right"),
                   style = "margin-top: 10px; margin-left: 30px; font-size: 16px"
                 ),
-                width = 9
+                width = 6
               )
             ),
           ),
@@ -70,19 +80,6 @@ shinyUI(
               max = 1024,
               value = 256
             ),
-            textInput(
-              inputId = "raw_id", 
-              label = "Raw identifier", 
-              value = "RAW"
-            ),
-            checkboxInput(
-              inputId = "has_psd", 
-              label = "Contains PSD data"
-            ),
-            checkboxInput(
-              inputId = "has_tf", 
-              label = "Contains TF data"
-            ),
             fileInput(
               inputId = "file", 
               label = "Select CSV file", 
@@ -94,26 +91,21 @@ shinyUI(
             title = "Transform",
             br(),
             numericInput(
-              inputId = "filt_lp", 
+              inputId = "l_freq", 
               label = "High pass filter", 
               value = 0.5, 
               min = 0.1
             ),
             numericInput(
-              inputId = "filt_hp", 
+              inputId = "h_freq", 
               label = "Low pass filter", 
               value = 35
-            ),
-            numericInput(
-              inputId = "filt_notch", 
-              label = "Notch filter", 
-              value = 60
             ),
             selectInput(
               inputId = "downsample",
               label = "Downsample factor",
               choices = c(1, 2, 4, 8),
-              selected = 4
+              selected = 1
             ),
             checkboxInput(
               inputId = "convert", 
@@ -134,18 +126,13 @@ shinyUI(
             selectInput(
               inputId = "plot",
               label = "Plot type",
-              choices = c("Raw", "PSD", "Spectrogram")
+              choices = c("Raw", "PSD", "FOOOF")
             ),
             selectInput(
               inputId = "chans",
               label = "Channels",
               choices = c(""),
               multiple = TRUE
-            ),
-            textInput(
-              inputId = "str_rm", 
-              label = "String remove", 
-              value = "RAW_"
             ),
             textInput(
               inputId = "plot_title",
@@ -160,7 +147,6 @@ shinyUI(
               value = c(0, 10),
               animate = TRUE
             ),
-            checkboxInput(inputId = "avg", label = "Average channels"),
             plot_tabs,
             actionButton(
               inputId = "saveplot", 
