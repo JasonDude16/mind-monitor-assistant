@@ -1,7 +1,7 @@
 # scale 
 plot_raw <- function(df, srate, window, chans, cols = NULL, str_rm = "RAW_", plot_title = NULL, overlay = FALSE, 
                      scale_fctr = 0.5, range_labs = TRUE, hline = TRUE, scale_by_window = TRUE, common_scale = TRUE, 
-                     plot_events = FALSE, events = NULL) {
+                     plot_events = FALSE, events = NULL, dark_theme = F) {
   
   # tibble for consistency
   df <- tibble::as_tibble(df)
@@ -66,6 +66,17 @@ plot_raw <- function(df, srate, window, chans, cols = NULL, str_rm = "RAW_", plo
   
   if (is.null(cols)) {
     cols <- c("forestgreen", "steelblue", "darkred", "darkorange", "purple", "salmon")
+  }
+  
+  if (dark_theme) {
+    par(
+      bg = "black",
+      col.axis = "white",
+      col.lab = "white",
+      col.main = "white",
+      col.sub = "white",
+      fg = "white"
+    )
   }
   
   # plotting first channel
